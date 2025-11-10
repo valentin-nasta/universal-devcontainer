@@ -1,0 +1,55 @@
+{
+  "name": "universal-dev-with-claude (v2-bypass)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+  "workspaceMount": "source=${localEnv:PROJECT_DIR},target=/workspaces/${localEnv:PROJECT_NAME},type=bind,consistency=cached",
+  "workspaceFolder": "/workspaces/${localEnv:PROJECT_NAME}",
+  "mounts": [
+    "source=claude-home,target=/home/vscode/.claude,type=volume"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": "bash .devcontainer/bootstrap-claude.sh",
+  "postStartCommand": "sudo bash .devcontainer/init-firewall.sh || true",
+  "runArgs": [
+    "--cap-add=NET_ADMIN"
+  ],
+  "remoteEnv": {
+    "CLAUDE_LOGIN_METHOD": "${localEnv:CLAUDE_LOGIN_METHOD}",
+    "CLAUDE_ORG_UUID": "${localEnv:CLAUDE_ORG_UUID}",
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    "CLAUDE_CODE_API_KEY_HELPER_TTL_MS": "${localEnv:CLAUDE_CODE_API_KEY_HELPER_TTL_MS}",
+    "ENABLE_CLAUDE_SANDBOX": "${localEnv:ENABLE_CLAUDE_SANDBOX}"
+  },
+  "containerEnv": {
+    "CLAUDE_CODE_API_KEY_HELPER_TTL_MS": "${localEnv:CLAUDE_CODE_API_KEY_HELPER_TTL_MS}",
+    "ENABLE_CLAUDE_SANDBOX": "${localEnv:ENABLE_CLAUDE_SANDBOX}"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode-remote.remote-containers",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "dev.containers.copyGitConfig": false,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "forwardPorts": [
+    3000,
+    5173,
+    8000,
+    9003
+  ]
+}
