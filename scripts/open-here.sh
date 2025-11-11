@@ -27,10 +27,13 @@ print(os.path.relpath(config, project))
 PY
 )
 
+PARENT_DIR=$(dirname "$REL_CFG")
 cat > "$PROJ_DEV_DIR/devcontainer.json" <<EOF
 {
   "name": "$(basename "$PROJECT_DIR")",
-  "extends": "file:$REL_CFG"
+  "extends": [
+    "file:$PARENT_DIR"
+  ]
 }
 EOF
 echo "[universal-devcontainer] Wrote: $PROJ_DEV_DIR/devcontainer.json (extends current repo config)"
