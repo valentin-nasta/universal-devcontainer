@@ -28,7 +28,10 @@ scripts/open-project.sh https://github.com/owner/repo.git
 # 正常情况下无需 Rebuild；脚本直接调用 devcontainer open
 ```
 
-说明：脚本依赖 Dev Containers CLI；如未安装会提示并退出。
+说明：
+- 若 Dev Containers CLI 版本支持 `open`（较新版本），脚本将直接在容器中打开项目；
+- 若不支持（如 0.80.x），脚本会写入临时的 `.devcontainer/devcontainer.local.json` 并提示你执行 “Reopen in Container”；
+- 你也可以手动清理该覆盖：`scripts/clear-override.sh`。
 
 进入容器后：
 ```bash
