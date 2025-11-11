@@ -2,8 +2,19 @@
 set -euo pipefail
 
 # Ensure the named volume mounted at /home/<user>/.claude is owned by the dev user
-TARGET_USER="${SUDO_USER:-$USER}"
-USER_HOME="$(eval echo ~"$TARGET_USER")"
+# Prefer the invoking non-root user, fall back to common devcontainer user "vscode".
+if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+  TARGET_USER="$SUDO_USER"
+else
+  TARGET_USER="vscode"
+fi
+
+# Resolve home directory for TARGET_USER
+if USER_HOME_ENTRY=$(getent passwd "$TARGET_USER" 2>/dev/null); then
+  USER_HOME="$(printf '%s' "$USER_HOME_ENTRY" | awk -F: '{print $6}')"
+else
+  USER_HOME="$(eval echo ~"$TARGET_USER")"
+fi
 CLAUDE_DIR="$USER_HOME/.claude"
 
 mkdir -p "$CLAUDE_DIR"
@@ -18,4 +29,3 @@ mkdir -p "$CLAUDE_DIR/bin" "$CLAUDE_DIR/commands" "$CLAUDE_DIR/skills" "$CLAUDE_
 chown -R "$UID_NUM":"$GID_NUM" "$CLAUDE_DIR" || true
 
 echo "[fix-claude-home] Ensured ownership of $CLAUDE_DIR for $TARGET_USER ($UID_NUM:$GID_NUM)"
-
