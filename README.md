@@ -1,17 +1,17 @@
 # Universal Dev Container — **Bypass Mode Default**
 
-> 这一版默认启用 **bypassPermissions**（绕过权限确认）。仅在**可信仓库**和**隔离环境**使用（本模板自带默认拒绝出网的白名单防火墙）。
+> 默认启用 **bypassPermissions**（绕过权限确认）。仅在**可信仓库**和**隔离环境**使用（默认启用基于白名单的出站防火墙）。
 
 ## 先决条件
 
 - VS Code ≥ 1.105，扩展 `ms-vscode-remote.remote-containers` ≥ 0.427
 - Docker Desktop（或兼容 Docker 引擎）已启动，支持 `host.docker.internal`
 - Git 可用（用于脚本拉取仓库）
-- 如处于受限网络/走代理，请先阅读 `docs/PROXY_SETUP.md`
+- 在受限网络或代理环境下，建议先阅读 `docs/PROXY_SETUP.md`
 
 ## 快速开始
 
-推荐方式（自动挂载任意项目目录）：
+推荐用法（自动挂载任意项目目录）：
 ```bash
 # 选择登录方式（console 推荐）
 export CLAUDE_LOGIN_METHOD=console
