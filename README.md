@@ -1,174 +1,343 @@
-# Universal Dev Container — **Bypass Mode Default**
+# Universal Dev Container — Claude Code 开发环境
 
-> 默认启用 **bypassPermissions**（绕过权限确认）。仅在**可信仓库**和**隔离环境**使用（默认启用基于白名单的出站防火墙）。
+> 可复用的 Dev Container 配置，集成 Claude Code、防火墙和代理支持。
+> 默认启用 **bypassPermissions**（绕过权限确认）— 仅用于**可信仓库**和**隔离环境**。
+
+## 这是什么？
+
+这是一个预配置的开发容器环境，包含：
+- ✅ **Claude Code** — AI 编程助手（已配置登录和权限）
+- ✅ **开发工具** — Node.js (LTS)、Python 3.12、GitHub CLI
+- ✅ **网络安全** — 基于白名单的出站防火墙
+- ✅ **代理支持** — VPN/企业代理透传
+- ✅ **可复用** — 一份配置，用于所有项目
 
 ## 先决条件
 
-- VS Code ≥ 1.105，扩展 `ms-vscode-remote.remote-containers` ≥ 0.427
-- Docker Desktop（或兼容 Docker 引擎）已启动，支持 `host.docker.internal`
-- Git 可用（用于脚本拉取仓库）
-- 安装 Dev Containers CLI：`npm i -g @devcontainers/cli`
-- 在受限网络或代理环境下，建议先阅读 `docs/PROXY_SETUP.md`
+- VS Code ≥ 1.105 + Dev Containers 扩展 ≥ 0.427
+- Docker Desktop 已启动
+- （可选）`npm i -g @devcontainers/cli` — 用于脚本辅助
 
-## 快速开始
+**受限网络/代理环境**：先阅读 [代理配置指南](docs/PROXY_SETUP.md)
 
-推荐用法（一键用本配置打开任意项目）：
+---
+
+## 快速开始 🚀
+
+**选择以下任一方法**（从简单到高级）：
+
+### 方法 1：VS Code UI 流程（推荐新手）
+
+**零文件创建，纯 UI 操作**
+
+1. 打开 VS Code
+2. 命令面板（Cmd/Ctrl+Shift+P）→ `Dev Containers: Open Folder in Container`
+3. 选择你的项目文件夹
+4. 选择 **"From a local devcontainer.json"**
+5. 导航到 `universal-devcontainer/.devcontainer/devcontainer.json`
+6. 等待容器启动完成 ✅
+
+### 方法 2：项目配置文件（推荐多项目使用）
+
+**在项目中创建 1 个最小文件**
+
+在你的项目根目录创建 `.devcontainer/devcontainer.json`：
+
+```json
+{
+  "name": "my-project",
+  "extends": "github:Joe-oss9527/universal-devcontainer"
+}
+```
+
+然后：
+- 命令面板 → `Dev Containers: Reopen in Container`
+- 或直接用 VS Code 打开项目文件夹，会自动提示重新打开
+
+**优点**：
+- 项目可以提交这个文件（团队共享配置）
+- 无需网络时可用 `file:相对路径` 替代 `github:`
+- 支持项目级自定义（覆盖端口、环境变量等）
+
+### 方法 3：脚本辅助工具
+
+**一键生成配置并打开**
+
 ```bash
-# 选择登录方式（console 推荐）
+# 设置 Claude 登录方式
 export CLAUDE_LOGIN_METHOD=console
-export ANTHROPIC_API_KEY=sk-ant-...
+export ANTHROPIC_API_KEY=sk-ant-...  # 或用其他登录方式
 
-# 在要作为项目的目录里运行，或指定路径/仓库（推荐已安装 devcontainer CLI）
-scripts/open-here.sh                      # 用当前目录作为项目
-# 或
-scripts/open-project.sh /abs/path/to/project
-# 或
-scripts/open-project.sh https://github.com/owner/repo.git
+# 在当前目录创建配置
+cd /path/to/your/project
+/path/to/universal-devcontainer/scripts/open-here.sh
 
-# 正常情况下无需 Rebuild；脚本直接调用 devcontainer open
+# 或指定项目路径
+/path/to/universal-devcontainer/scripts/open-project.sh /path/to/your/project
+
+# 或直接从 Git 仓库
+/path/to/universal-devcontainer/scripts/open-project.sh https://github.com/owner/repo.git
 ```
 
-说明：
-- 若 Dev Containers CLI 版本支持 `open`（较新版本），脚本将直接在容器中打开项目；
-- 若不支持（如 0.80.x），脚本会在“项目目录”下生成最小的 `.devcontainer/devcontainer.json`，其 `extends` 指向本仓库的配置，然后自动打开该项目；此时在 VS Code 中执行“Reopen in Container”即可。
+脚本会：
+1. 自动创建最小的 `.devcontainer/devcontainer.json`（方法 2 的配置）
+2. 打开 VS Code
+3. 提示你点击"Reopen in Container"
 
-进入容器后：
+---
+
+## 验证安装
+
+容器启动后，打开终端验证：
+
 ```bash
+# 检查 Claude Code
 claude /help
-/permissions   # 查看当前模式（应该显示 bypassPermissions）
+/permissions          # 应显示 bypassPermissions
+
+# 检查开发工具
+node -v               # LTS 版本
+python3 --version     # 3.12.x (Ubuntu 24.04)
+gh --version          # GitHub CLI
+
+# 检查代理（如已配置）
+env | grep -i proxy
+nc -vz host.docker.internal 1082  # 测试宿主代理连通性
 ```
 
-### 验证清单
-- `python3 --version`（预期 Ubuntu 24.04 为 3.12.x）
-- `node -v`（LTS）/ `npm -v`
-- `gh --version`
-- `env | grep -i proxy`、`nc -vz host.docker.internal 1082`（如配置了代理）
+---
 
 ## 环境变量配置
 
-### 必需变量
+### 必需变量（登录 Claude）
+
 | 变量 | 说明 | 示例 |
 |------|------|------|
 | `CLAUDE_LOGIN_METHOD` | 登录方式：`console`/`claudeai`/`apiKey` | `console` |
-| `ANTHROPIC_API_KEY` | Anthropic API Key（用 apiKey 方式时） | `sk-ant-xxx...` |
+| `ANTHROPIC_API_KEY` | API Key（用 `apiKey` 方式时） | `sk-ant-xxx...` |
 
-注：也可用 VS Code 内置流程（无需脚本）：命令面板执行“Dev Containers: Open Folder in Container...”，选择“From a predefined container configuration”，把本仓库作为“配置文件夹”，你的项目目录作为“工作区文件夹”。
+在宿主机设置（容器会自动读取）：
 
-### 可选变量
-| 变量 | 说明 | 示例 |
-|------|------|------|
-| `CLAUDE_ORG_UUID` | 强制使用指定组织 UUID | `org-xxx...` |
-| `EXTRA_ALLOW_DOMAINS` | 防火墙额外白名单域名（空格分隔） | `"mycompany.com api.internal.net"` |
-| `ALLOW_SSH_ANY` | 允许任意 SSH 连接（默认 `0`，仅允许 GitHub） | `1` |
-| `ENABLE_CLAUDE_SANDBOX` | 启用 Claude Code 沙箱模式 | `1` |
-| `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` | API Key Helper 缓存时间（毫秒） | `300000` |
-| `HOST_PROXY_URL` | 宿主机 HTTP/HTTPS 代理地址 | `http://host.docker.internal:7890` |
-| `ALL_PROXY` | 宿主机 SOCKS 代理地址（可选） | `socks5h://host.docker.internal:1080` |
-| `NO_PROXY` | 不走代理的地址列表（可选） | `localhost,127.0.0.1,.local` |
-
-#### EXTRA_ALLOW_DOMAINS 使用示例
 ```bash
-# 允许访问公司内部域名
-export EXTRA_ALLOW_DOMAINS="gitlab.mycompany.com registry.internal.net"
+# 方式 1：环境变量
+export CLAUDE_LOGIN_METHOD=console
+export ANTHROPIC_API_KEY=sk-ant-...
 
-# 防火墙将会额外放行这些域名的 HTTPS (443) 连接
+# 方式 2：VS Code settings.json
+// ~/.config/Code/User/settings.json
+{
+  "dev.containers.defaultEnv": {
+    "CLAUDE_LOGIN_METHOD": "console",
+    "ANTHROPIC_API_KEY": "sk-ant-..."
+  }
+}
 ```
 
-## 模式切换（脚本与 JSON 两种）
+### 可选变量
 
-- 用脚本：
-  ```bash
-  scripts/switch-mode.sh bypass      # 开启绕过（默认）
-  scripts/switch-mode.sh safe        # 更安全（acceptEdits + 禁用绕过）
-  scripts/switch-mode.sh custom ask  # 自定义模式字符串
-  ```
-- 手动 JSON：见 `MODE-SWITCH.md`。
+| 变量 | 说明 | 默认值 | 示例 |
+|------|------|--------|------|
+| `CLAUDE_ORG_UUID` | 强制使用指定组织 | - | `org-xxx...` |
+| `HOST_PROXY_URL` | 宿主机 HTTP/HTTPS 代理 | - | `http://host.docker.internal:7890` |
+| `ALL_PROXY` | 宿主机 SOCKS 代理 | - | `socks5h://host.docker.internal:1080` |
+| `NO_PROXY` | 不走代理的地址 | - | `localhost,127.0.0.1,.local` |
+| `EXTRA_ALLOW_DOMAINS` | 防火墙额外白名单 | - | `"gitlab.com myapi.com"` |
+| `ALLOW_SSH_ANY` | 允许任意 SSH 连接 | `0` | `1` |
+| `STRICT_PROXY_ONLY` | 仅允许代理访问 | `0` | `1` |
+| `ENABLE_CLAUDE_SANDBOX` | Claude 沙箱模式 | - | `1` |
+
+**代理配置详细说明**：见 [docs/PROXY_SETUP.md](docs/PROXY_SETUP.md)
+
+---
+
+## 模式切换
+
+默认使用 **bypass 模式**（无人工确认）。如需更安全的模式：
+
+```bash
+# 在容器内执行
+scripts/switch-mode.sh bypass      # 绕过模式（默认）
+scripts/switch-mode.sh safe        # 安全模式（acceptEdits + 禁用绕过）
+scripts/switch-mode.sh custom ask  # 自定义模式
+```
+
+或手动编辑 `.claude/settings.local.json`，详见 `MODE-SWITCH.md`。
+
+---
 
 ## 防火墙白名单
 
-容器启动时会应用默认拒绝的出站防火墙，仅允许以下域名的 HTTPS (443) 连接：
+容器默认**拒绝所有出站连接**，仅允许以下域名的 HTTPS (443) 连接：
 
-**默认白名单**：
+**基础白名单**：
 - `registry.npmjs.org` / `npmjs.org` — npm 包管理
-- `github.com` / `api.github.com` / `objects.githubusercontent.com` — GitHub 访问
-- `claude.ai` / `api.anthropic.com` / `console.anthropic.com` — Claude Code 服务
-- DNS 服务器（从 `/etc/resolv.conf` 读取）— UDP/TCP 53 端口
-- GitHub SSH（22 端口，除非设置 `ALLOW_SSH_ANY=1`）
+- `github.com` / `api.github.com` / `objects.githubusercontent.com` — GitHub
+- `claude.ai` / `api.anthropic.com` / `console.anthropic.com` — Claude Code
+- DNS 服务器（UDP/TCP 53）
+- GitHub SSH（22 端口，除非 `ALLOW_SSH_ANY=1`）
 
-**扩展白名单**：使用 `EXTRA_ALLOW_DOMAINS` 环境变量添加额外域名。
+**扩展白名单**：
 
-**VPN/代理支持**：容器支持通过宿主机代理访问网络。详见 [VPN/代理配置指南](docs/PROXY_SETUP.md)。
+```bash
+export EXTRA_ALLOW_DOMAINS="gitlab.mycompany.com registry.internal.net"
+```
 
-网络/代理注意事项（摘要）：
-- 在 macOS/Windows 下通过 `host.docker.internal` 访问宿主代理端口（示例：`HTTP_PROXY=http://host.docker.internal:1082`）
-- 设置 `NO_PROXY=localhost,127.0.0.1,host.docker.internal,.local`
-- 受限网络下建议只走代理；如需更严格策略，可按需调整 `.devcontainer/init-firewall.sh`
+防火墙会额外放行这些域名。
 
-### 严格只走代理（Strict Proxy Only）
-- 行为：仅放行 DNS 与代理主机端口（例如 1082），不再放行任何域名直连（即便在白名单中）。所有外网访问都必须通过代理，否则会被阻断。
-- 影响：GitHub/npm/Claude 也必须走代理；不读取代理的工具会失败，需要显式配置它们的代理。
-- 启用方式：设置环境变量 `STRICT_PROXY_ONLY=1`，并重建/重启容器。
-  - 在 `devcontainer.json`（容器环境）加入：
-    ```json
-    "containerEnv": { "STRICT_PROXY_ONLY": "1" }
-    ```
-  - 或在 VS Code 运行时设置（临时）：容器内 `export STRICT_PROXY_ONLY=1` 后重启 postStart（或重建）
-  - 需要直连 SSH（22）时，请在严格模式下为 SSH 配置代理（ProxyCommand/ProxyJump/HTTPS ProxyCommand 等）
+**严格代理模式**（`STRICT_PROXY_ONLY=1`）：
+- 仅放行 DNS 和代理端口
+- 所有外网访问必须走代理
+- 适用于高安全要求的受限网络
+
+---
 
 ## 内置功能
 
 ### 预装插件
-- `commit-commands` — 提交辅助命令
-- `pr-review-toolkit` — PR 审查工具
+- `commit-commands` — 提交辅助
+- `pr-review-toolkit` — PR 审查
 - `security-guidance` — 安全指导
 
-#### 插件故障排查（not found in marketplace）
-- 现象：`/doctor` 显示例如 `Plugin commit-commands not found in marketplace claude-code-plugins`。
-- 原因：插件“市场”源路径未正确解析，或网络无法拉取 GitHub 索引。
-- 解决：
-  - 已修正 bootstrap 的市场配置（指向 `anthropics/claude-code/plugins`）。在容器内执行：`bash .devcontainer/bootstrap-claude.sh` 以合并更新到 `~/.claude/settings.json`。
-  - 验证：
-    - `claude /plugins marketplaces` 应出现 `claude-code-plugins`
-    - `claude /plugins search commit-commands` 能搜索到插件
-    - 如仍失败，检查网络/代理能否访问 GitHub（见下方“防火墙白名单”和 `docs/PROXY_SETUP.md`）。
+**插件故障排查**：如果 `/doctor` 显示插件 "not found in marketplace"：
+
+```bash
+# 重新运行 bootstrap 脚本
+bash .devcontainer/bootstrap-claude.sh
+
+# 验证
+claude /plugins marketplaces        # 应显示 claude-code-plugins
+claude /plugins search commit-commands
+```
 
 ### 自定义命令和技能
-- `/review-pr <PR编号>` — 分析 GitHub PR 并生成审查要点
-- `reviewing-prs` skill — 专注于代码审查的 AI 技能
+- `/review-pr <PR编号>` — 分析 GitHub PR
+- `reviewing-prs` skill — 代码审查 AI 技能
 
 ### 端口转发
-默认转发以下端口到主机：`3000`, `5173`, `8000`, `9003`
+默认转发：`3000`, `5173`, `8000`, `9003`
 
 ### 预装工具
-- **开发工具**：Node.js (LTS), Python（系统版本，Ubuntu 24.04 为 3.12），GitHub CLI
+- **开发工具**：Node.js (LTS), Python 3.12, GitHub CLI
 - **系统工具**：git, curl, jq, iptables, dnsutils, netcat
 
-说明：使用系统 Python 可避免在受限网络下源码编译与 GPG 校验失败。如果必须固定到 3.11 等非系统版本，可在 `devcontainer.json` 中修改 Feature 配置，并确保为该 Feature 提供专用代理（或预配置 dirmngr）。
+---
 
 ## 目录结构
-- `.devcontainer/` — 容器定义
-  - `Dockerfile` — 基础镜像和系统包
-  - `devcontainer.json` — VS Code Dev Container 配置
-  - `bootstrap-claude.sh` — Claude Code 安装和配置（postCreate）
-  - `init-firewall.sh` — 防火墙初始化（postStart）
-  - `setup-proxy.sh` — 代理配置脚本（可选执行）
-- `scripts/` — 辅助脚本
-  - `open-here.sh` — 使用 Dev Containers CLI 用本配置打开当前目录为工作区（兼容：生成 extends 文件）
-  - `open-project.sh <路径|Git URL>` — 用本配置打开指定项目（兼容：生成 extends 文件）
-  - `switch-mode.sh` — 权限模式切换
-- `.claude/` — Claude Code 配置
-  - `settings.local.json` — 项目级权限配置
-- `docs/` — 文档目录
-  - `PROXY_SETUP.md` — VPN/代理配置指南
-- `README.md` / `MODE-SWITCH.md` — 主要文档
 
-## 安全提醒
-- **绕过模式**不会有人类确认，请**只在可信项目**使用
+```
+universal-devcontainer/
+├── .devcontainer/
+│   ├── devcontainer.json       # 主配置（已简化，无 workspaceMount）
+│   ├── Dockerfile              # 基础镜像
+│   ├── bootstrap-claude.sh     # Claude Code 安装
+│   ├── init-firewall.sh        # 防火墙规则
+│   └── setup-proxy.sh          # 代理配置
+├── scripts/
+│   ├── open-here.sh            # 在当前目录创建配置
+│   ├── open-project.sh         # 为指定项目创建配置
+│   └── switch-mode.sh          # 权限模式切换
+├── .claude/
+│   └── settings.local.json     # 项目级权限配置
+└── docs/
+    ├── PROXY_SETUP.md          # 代理配置详细指南
+    ├── DEVCONTAINERS_KNOWN_ISSUES.md  # 已知问题和解决方案
+    └── MIGRATION.md            # 升级指南（针对旧版本用户）
+```
+
+---
+
+## 故障排查
+
+### 问题：容器无法访问外网
+
+**检查项**：
+1. 防火墙是否阻止了你需要的域名？→ 添加到 `EXTRA_ALLOW_DOMAINS`
+2. 是否在受限网络？→ 配置 `HOST_PROXY_URL`，见 [docs/PROXY_SETUP.md](docs/PROXY_SETUP.md)
+3. Docker 文件共享权限（macOS）：Docker Desktop → Resources → File Sharing 包含 `/Users`
+
+### 问题：Claude Code 插件找不到
+
+```bash
+# 检查市场配置
+claude /plugins marketplaces
+
+# 重新 bootstrap
+bash .devcontainer/bootstrap-claude.sh
+
+# 检查网络
+curl -I https://api.github.com
+```
+
+### 问题：路径权限错误（macOS/Linux）
+
+```bash
+# 确保父目录可遍历
+chmod o+rx /Users/<username>
+chmod o+rx /Users/<username>/developer
+chmod o+rx /Users/<username>/developer/<project>
+```
+
+### 问题：extends 找不到配置文件
+
+**现象**：提示 "missing image information"
+
+**解决**：
+- **方法 1**：使用 `github:owner/repo` 而非 `file:相对路径`
+- **方法 2**：检查相对路径是否正确（从项目根目录到配置文件的路径）
+- **方法 3**：使用方法 1（VS Code UI 流程），无需 extends
+
+---
+
+## 安全提醒 ⚠️
+
+- **绕过模式**不会有人工确认，请**只在可信项目**使用
 - 防火墙默认拒绝所有出站连接，仅白名单域名可访问
 - 敏感文件受保护：`.env*`, `secrets/**`, `id_rsa`, `id_ed25519`
-- 容器需要 `--cap-add=NET_ADMIN` 权限来管理 iptables 防火墙
+- 容器需要 `--cap-add=NET_ADMIN` 权限来管理防火墙
 
-如需切换到更安全的模式（非绕过），请参见 `MODE-SWITCH.md` 或运行 `scripts/switch-mode.sh safe`。
+如需更安全的模式：
+```bash
+scripts/switch-mode.sh safe
+```
+
+---
+
+## 常见使用场景
+
+### 场景 1：快速试用（临时项目）
+→ 使用**方法 1**（UI 流程），无需创建任何文件
+
+### 场景 2：团队协作项目
+→ 使用**方法 2**（项目配置），提交 `.devcontainer/devcontainer.json` 到代码库
+
+### 场景 3：多个个人项目
+→ 使用**方法 3**（脚本辅助），快速为每个项目生成配置
+
+### 场景 4：企业受限网络
+→ 先配置代理（见 [docs/PROXY_SETUP.md](docs/PROXY_SETUP.md)），然后使用任一方法
+
+---
+
+## 更新日志
+
+### v2.0.0（简化版本）— 2025-01
+
+**重大变更**（提升易用性）：
+- ✅ **移除** `workspaceMount` 和 `workspaceFolder`（修复所有已知问题）
+- ✅ **简化**脚本逻辑（减少 50%+ 复杂度，移除 Python 依赖）
+- ✅ **重构**文档（新增快速开始指南）
+- ✅ **统一**策略（extends 作为唯一推荐方法）
+
+**升级指南**：见 [docs/MIGRATION.md](docs/MIGRATION.md)
+
+---
+
+## 参考资料
+
+- [VS Code Dev Containers 官方文档](https://code.visualstudio.com/docs/devcontainers/containers)
+- [Dev Container 规范](https://containers.dev/)
+- [Claude Code 文档](https://code.claude.com/docs)
 
 ## 许可证
+
 MIT License — 详见 `LICENSE` 文件

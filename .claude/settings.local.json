@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(env)",
+      "WebFetch(domain:containers.dev)",
+      "WebFetch(domain:code.visualstudio.com)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(jq empty:*)",
+      "Bash(bash -n:*)",
+      "Bash(code:*)",
+      "Bash(curl:*)",
+      "Bash(test:*)",
+      "Bash(cat:*)",
+      "Bash(cd:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

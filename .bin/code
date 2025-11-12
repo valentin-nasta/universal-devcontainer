@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+echo "[stub-code] VS Code launch suppressed in CLI harness."
+exit 0

@@ -9,9 +9,7 @@
     }
   },
   "remoteUser": "vscode",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  
+
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts"
