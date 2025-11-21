@@ -118,7 +118,7 @@ nc -vz host.docker.internal 1082  # 测试宿主代理连通性
 
 ### 登录和组织配置（可选）
 
-默认情况下，只要在宿主机执行过 `claude login`，容器会通过挂载 `~/.claude` 直接复用登录状态，一般 **无需额外环境变量**。
+默认情况下，只要在宿主机执行过 `claude login`，容器会在初始化时从宿主机 `~/.claude/settings.json` 复制登录配置到容器内部，一般 **无需额外环境变量**。
 
 如需覆盖登录方式或使用纯 API Key 模式，可以设置：
 
@@ -161,11 +161,11 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 ## ⚠️ 安全与凭证共享
 
-本配置通过挂载宿主机的 `~/.claude` 目录实现凭证共享：
+本配置通过**只读挂载 + 一次性复制**的方式共享宿主机登录信息：
 
-1. **无需在容器内登录**：容器启动后会直接复用宿主机的 `claude login` 状态。
-2. **会话失效处理**：如提示 Token 过期，请在宿主机终端执行 `claude login`，容器会自动同步，无需重启。
-3. **配置同步**：容器启动时运行 `bootstrap-claude.sh`，会更新 `~/.claude/settings.json`（如开启 bypassPermissions、启用内置插件）。这些更改对宿主机和容器同时生效，请仅在信任当前机器和仓库时使用。
+1. **无需在容器内登录**：容器首次创建时从宿主机 `~/.claude/settings.json` 读取登录配置，复制到容器内部 `/home/vscode/.claude/settings.json`。
+2. **会话失效处理**：如提示 Token 过期，请在宿主机终端执行 `claude login`，然后在 VS Code 中执行 “Rebuild Without Cache” 重新创建容器，以重新复制最新登录状态。
+3. **不回写宿主配置**：容器内的 `bootstrap-claude.sh` 只会写入容器自己的 `/home/vscode/.claude/settings.json`，不会修改宿主机 `~/.claude`，降低凭证被意外更改的风险。
 
 ---
 

@@ -33,7 +33,7 @@
     "source=${localWorkspaceFolder},target=/universal,type=bind",
     "source=${localEnv:PROJECT_PATH},target=/workspace,type=bind",
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+    "source=${localEnv:HOME}/.claude,target=/host-claude,type=bind,readonly"
   ],
   "remoteEnv": {
     "PROJECT_PATH": "${localEnv:PROJECT_PATH}",

@@ -5,6 +5,8 @@ echo "[bootstrap] Installing Claude Code CLI..."
 npm i -g @anthropic-ai/claude-code
 
 CLAUDE_HOME="$HOME/.claude"
+HOST_CLAUDE_DIR="/host-claude"
+HOST_CFG="$HOST_CLAUDE_DIR/settings.json"
 echo "[bootstrap] Preparing Claude home at $CLAUDE_HOME..."
 mkdir -p "$CLAUDE_HOME/bin" "$CLAUDE_HOME/commands" "$CLAUDE_HOME/skills"
 CFG="$CLAUDE_HOME/settings.json"
@@ -73,23 +75,43 @@ fi
 
 # ---- Merge settings (existing -> base -> login -> apiHelper -> sandbox) ----
 echo "[bootstrap] Merging settings..."
-if [[ -f "$CFG" ]]; then
-  tmp="$(mktemp)"
+EXISTING_CFG_PATH=""
+TMP_HOST_CFG=""
+
+if [[ -f "$HOST_CFG" ]]; then
+  echo "[bootstrap] Found host settings at $HOST_CFG, importing..."
+  TMP_HOST_CFG="$(mktemp)"
+  if sudo cat "$HOST_CFG" > "$TMP_HOST_CFG" 2>/dev/null; then
+    EXISTING_CFG_PATH="$TMP_HOST_CFG"
+  else
+    echo "[bootstrap] Warning: unable to read host settings.json; falling back to container-local settings (if any)" >&2
+  fi
+fi
+
+if [[ -z "$EXISTING_CFG_PATH" && -f "$CFG" ]]; then
+  EXISTING_CFG_PATH="$CFG"
+fi
+
+tmp="$(mktemp)"
+if [[ -n "$EXISTING_CFG_PATH" ]]; then
   jq -s '.[0] * .[1] * .[2] * .[3] * .[4]' \
-    "$CFG" \
+    "$EXISTING_CFG_PATH" \
     <(printf '%s' "$BASE_CFG") \
     <(printf '%s' "$LOGIN_CFG") \
     <(printf '%s' "$API_HELPER_CFG") \
     <(printf '%s' "$SANDBOX_CFG") \
-    > "$tmp" && mv "$tmp" "$CFG"
+    > "$tmp"
 else
-  tmp="$(mktemp)"
   jq -s '.[0] * .[1] * .[2] * .[3]' \
     <(printf '%s' "$BASE_CFG") \
     <(printf '%s' "$LOGIN_CFG") \
     <(printf '%s' "$API_HELPER_CFG") \
     <(printf '%s' "$SANDBOX_CFG") \
-    > "$tmp" && mv "$tmp" "$CFG"
+    > "$tmp"
+fi
+mv "$tmp" "$CFG"
+if [[ -n "$TMP_HOST_CFG" ]]; then
+  rm -f "$TMP_HOST_CFG"
 fi
 
 echo "[bootstrap] Seeding commands and skills..."
