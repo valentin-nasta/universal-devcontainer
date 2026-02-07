@@ -1,54 +1,54 @@
-# TODO — 后续优化计划
+# TODO — Future Optimization Plan
 
-> v2.0.0 核心功能已完成，以下是未来优化方向
-
----
-
-## 优先级分类
-
-- 🔴 **高优先级** — 重要且紧急
-- 🟡 **中优先级** — 重要但不紧急
-- 🟢 **低优先级** — 锦上添花
+> v2.0.0 core features are complete. Below are future optimization directions.
 
 ---
 
-## 🟡 发布与分发
+## Priority Categories
 
-### 发布为 Dev Container Template
-**目标**：将此配置发布到 containers.dev 官方注册表
+- **High Priority** — Important and urgent
+- **Medium Priority** — Important but not urgent
+- **Low Priority** — Nice to have
 
-**好处**：
-- 用户可以通过 VS Code UI 直接发现和使用
-- 更好的可见性和可信度
-- 符合官方推荐的分发方式
+---
 
-**步骤**：
-1. [ ] 研究 [Dev Container Template 规范](https://containers.dev/templates)
-2. [ ] 创建 `devcontainer-template.json` 元数据文件
-3. [ ] 准备示例和选项配置
-4. [ ] 提交到 [devcontainers/templates](https://github.com/devcontainers/templates) 仓库
-5. [ ] 或发布到自己的 OCI 注册表
+## Medium Priority: Release & Distribution
 
-**参考资料**：
+### Publish as a Dev Container Template
+**Goal**: Publish this configuration to the containers.dev official registry
+
+**Benefits**:
+- Users can discover and use it directly through the VS Code UI
+- Better visibility and credibility
+- Follows the officially recommended distribution method
+
+**Steps**:
+1. [ ] Research the [Dev Container Template specification](https://containers.dev/templates)
+2. [ ] Create a `devcontainer-template.json` metadata file
+3. [ ] Prepare examples and option configurations
+4. [ ] Submit to the [devcontainers/templates](https://github.com/devcontainers/templates) repository
+5. [ ] Or publish to your own OCI registry
+
+**References**:
 - https://containers.dev/templates
 - https://github.com/devcontainers/template-starter
 
-**预估工作量**：2-3 天
+**Estimated effort**: 2-3 days
 
 ---
 
-### 将 Claude Code 设置打包为 Feature
-**目标**：将 Claude Code 安装和配置提取为独立的 Dev Container Feature
+### Package Claude Code Settings as a Feature
+**Goal**: Extract Claude Code installation and configuration into a standalone Dev Container Feature
 
-**好处**：
-- 可复用性更强（其他项目可以单独引用）
-- 更模块化的设计
-- 符合 Dev Container 生态系统最佳实践
-- 用户可以按需组合 Features
+**Benefits**:
+- Greater reusability (other projects can reference it independently)
+- More modular design
+- Follows Dev Container ecosystem best practices
+- Users can combine Features as needed
 
-**步骤**：
-1. [ ] 研究 [Dev Container Features 规范](https://containers.dev/features)
-2. [ ] 创建 Feature 目录结构：
+**Steps**:
+1. [ ] Research the [Dev Container Features specification](https://containers.dev/features)
+2. [ ] Create Feature directory structure:
    ```
    features/
    └── claude-code/
@@ -56,82 +56,82 @@
        ├── install.sh
        └── README.md
    ```
-3. [ ] 将 `bootstrap-claude.sh` 逻辑迁移到 Feature
-4. [ ] 支持可配置选项：
-   - Claude 登录方式
-   - 权限模式（bypass/safe）
-   - 预装插件列表
-5. [ ] 测试 Feature 独立性
-6. [ ] 发布到 Feature 注册表或 OCI
+3. [ ] Migrate `bootstrap-claude.sh` logic to the Feature
+4. [ ] Support configurable options:
+   - Claude login method
+   - Permission mode (bypass/safe)
+   - Pre-installed plugin list
+5. [ ] Test Feature independence
+6. [ ] Publish to Feature registry or OCI
 
-**参考资料**：
+**References**:
 - https://containers.dev/implementors/features/
 - https://github.com/devcontainers/feature-starter
 
-**预估工作量**：3-5 天
+**Estimated effort**: 3-5 days
 
 ---
 
-### 考虑将防火墙配置打包为独立 Feature
-**目标**：将防火墙设置提取为可选 Feature
+### Consider Packaging Firewall Configuration as a Standalone Feature
+**Goal**: Extract firewall setup into an optional Feature
 
-**好处**：
-- 用户可以选择是否启用防火墙
-- 更灵活的安全策略
-- 降低主配置复杂度
+**Benefits**:
+- Users can choose whether to enable the firewall
+- More flexible security policies
+- Reduced main configuration complexity
 
-**步骤**：
-1. [ ] 创建 `features/firewall/` Feature
-2. [ ] 支持配置选项：
-   - 白名单域名
-   - 严格代理模式
-   - SSH 策略
-3. [ ] 提供预设模板（宽松/标准/严格）
-4. [ ] 测试与主配置集成
+**Steps**:
+1. [ ] Create `features/firewall/` Feature
+2. [ ] Support configuration options:
+   - Allowlist domains
+   - Strict proxy mode
+   - SSH policy
+3. [ ] Provide preset templates (permissive/standard/strict)
+4. [ ] Test integration with the main configuration
 
-**预估工作量**：2-3 天
+**Estimated effort**: 2-3 days
 
 ---
 
-## 🟡 CI/CD 和测试
+## Medium Priority: CI/CD and Testing
 
-### 添加 CI 测试验证配置有效性
-**目标**：自动化测试确保配置始终可用
+### Add CI Tests to Validate Configuration
+**Goal**: Automated testing to ensure the configuration always works
 
-**测试场景**：
-1. [ ] **JSON 语法验证**
-   - `devcontainer.json` 格式正确
-   - 所有 JSON 文件可解析
+**Test scenarios**:
+1. [ ] **JSON syntax validation**
+   - `devcontainer.json` is properly formatted
+   - All JSON files are parseable
 
-2. [ ] **配置合并测试**
-   - 测试 `extends` 机制正常工作
-   - 验证 GitHub extends 可访问
+2. [ ] **Configuration merge tests**
+   - Test that the `extends` mechanism works correctly
+   - Verify GitHub extends are accessible
 
-3. [ ] **容器构建测试**
-   - 成功构建容器镜像
-   - 所有 Features 正确安装
-   - 开发工具可用（Node.js、Python、GitHub CLI）
+3. [ ] **Container build tests**
+   - Successfully build the container image
+   - All Features install correctly
+   - Development tools are available (Node.js, Python, GitHub CLI)
 
-4. [ ] **脚本测试**
-   - Bash 语法检查
-   - 脚本执行测试（模拟环境）
-   - 错误处理验证
+4. [ ] **Script tests**
+   - Bash syntax checking
+   - Script execution tests (simulated environment)
+   - Error handling validation
 
-5. [ ] **Claude Code 集成测试**
-   - Claude CLI 已安装
-   - 配置文件正确生成
-   - 插件可用
+5. [ ] **Claude Code integration tests**
+   - Claude CLI is installed
+   - Configuration files are correctly generated
+   - Plugins are available
 
-6. [ ] **防火墙测试**
-   - iptables 规则正确应用
-   - 白名单域名可访问
-   - 非白名单域名被阻止
+6. [ ] **Firewall tests**
+   - iptables rules are correctly applied
+   - Allowlisted domains are accessible
+   - Non-allowlisted domains are blocked
 
-**CI 平台选择**：
-- [ ] GitHub Actions（推荐）
-- [ ] 或 GitLab CI
+**CI platform choice**:
+- [ ] GitHub Actions (recommended)
+- [ ] Or GitLab CI
 
-**工作流示例**：
+**Workflow example**:
 ```yaml
 name: Test Dev Container Config
 on: [push, pull_request]
@@ -160,40 +160,40 @@ jobs:
           bash -n scripts/*.sh
 ```
 
-**预估工作量**：3-4 天
+**Estimated effort**: 3-4 days
 
 ---
 
-## 🟢 文档和示例
+## Low Priority: Documentation and Examples
 
-### 创建视频教程
-**目标**：录制快速入门视频
+### Create Video Tutorials
+**Goal**: Record quick-start video tutorials
 
-**内容**：
-- [ ] 3 种使用方法的演示
-- [ ] 常见问题排查
-- [ ] 代理配置演示
+**Content**:
+- [ ] Demos of the 3 usage methods
+- [ ] Common troubleshooting
+- [ ] Proxy configuration demo
 
-**平台**：
+**Platforms**:
 - YouTube / Bilibili
-- 嵌入到 README
+- Embed in README
 
-**预估工作量**：1-2 天
+**Estimated effort**: 1-2 days
 
 ---
 
-### 添加更多使用示例
-**目标**：为常见框架提供示例配置
+### Add More Usage Examples
+**Goal**: Provide example configurations for common frameworks
 
-**框架覆盖**：
+**Framework coverage**:
 - [ ] React / Next.js
 - [ ] Vue / Nuxt
 - [ ] Node.js / Express
 - [ ] Python / FastAPI / Django
-- [ ] Go 项目
-- [ ] Rust 项目
+- [ ] Go projects
+- [ ] Rust projects
 
-**示例结构**：
+**Example structure**:
 ```
 examples/
 ├── react-app/
@@ -204,261 +204,261 @@ examples/
     └── .devcontainer/devcontainer.json
 ```
 
-**预估工作量**：2-3 天
+**Estimated effort**: 2-3 days
 
 ---
 
-## 🟢 功能增强
+## Low Priority: Feature Enhancements
 
-### 支持更多 Claude Code 模式
-**目标**：提供更多预设的权限模式
+### Support More Claude Code Modes
+**Goal**: Provide more preset permission modes
 
-**模式**：
-- [ ] `ultra-safe` — 所有操作都需要确认
-- [ ] `dev` — 开发模式（当前 bypass）
-- [ ] `review` — 审查模式（只读 + 评论）
-- [ ] `custom` — 自定义模式生成器
+**Modes**:
+- [ ] `ultra-safe` — All operations require confirmation
+- [ ] `dev` — Development mode (current bypass)
+- [ ] `review` — Review mode (read-only + comments)
+- [ ] `custom` — Custom mode generator
 
-**实现**：
-- 提供交互式配置向导（直接编辑 `~/.claude/settings.json`）
+**Implementation**:
+- Provide an interactive configuration wizard (directly edit `~/.claude/settings.json`)
 
-**预估工作量**：1-2 天
+**Estimated effort**: 1-2 days
 
 ---
 
-### 添加项目模板生成器
-**目标**：快速生成常见项目结构
+### Add Project Template Generator
+**Goal**: Quickly generate common project structures
 
-**功能**：
+**Features**:
 ```bash
 scripts/create-project.sh my-app --template react-ts
-# 自动创建：
-# - 项目目录结构
+# Auto-creates:
+# - Project directory structure
 # - .devcontainer/devcontainer.json
-# - package.json / 基础文件
-# - 打开容器
+# - package.json / base files
+# - Opens the container
 ```
 
-**预估工作量**：2-3 天
+**Estimated effort**: 2-3 days
 
 ---
 
-### 支持多容器配置
-**目标**：支持前后端分离、数据库等多容器场景
+### Support Multi-Container Configuration
+**Goal**: Support frontend/backend separation, databases, and other multi-container scenarios
 
-**示例**：
+**Example**:
 ```yaml
 # docker-compose.yml
 services:
   app:
-    # 主开发容器
+    # Main development container
   db:
     image: postgres:15
   redis:
     image: redis:7
 ```
 
-**预估工作量**：3-4 天
+**Estimated effort**: 3-4 days
 
 ---
 
-## 🟢 性能优化
+## Low Priority: Performance Optimization
 
-### 优化容器启动速度
-**目标**：减少首次构建时间
+### Optimize Container Startup Speed
+**Goal**: Reduce first-build time
 
-**方案**：
-- [ ] 使用预构建镜像（发布到 Docker Hub / GHCR）
-- [ ] 优化 Dockerfile 层缓存
-- [ ] 按需安装工具（通过 Features）
+**Approaches**:
+- [ ] Use pre-built images (publish to Docker Hub / GHCR)
+- [ ] Optimize Dockerfile layer caching
+- [ ] Install tools on-demand (via Features)
 
-**预期提升**：
-- 首次构建：10 分钟 → 3 分钟
-- 后续启动：30 秒 → 10 秒
+**Expected improvement**:
+- First build: 10 minutes -> 3 minutes
+- Subsequent starts: 30 seconds -> 10 seconds
 
-**预估工作量**：2-3 天
+**Estimated effort**: 2-3 days
 
 ---
 
-### 添加增量更新机制
-**目标**：容器内更新配置而无需重建
+### Add Incremental Update Mechanism
+**Goal**: Update configuration inside the container without rebuilding
 
-**功能**：
+**Features**:
 ```bash
-# 容器内执行
+# Run inside the container
 update-config.sh
-# 自动拉取最新配置、更新插件等
+# Automatically pulls latest config, updates plugins, etc.
 ```
 
-**预估工作量**：1-2 天
+**Estimated effort**: 1-2 days
 
 ---
 
-## 🔴 安全和合规
+## High Priority: Security and Compliance
 
-### 安全审计
-**目标**：确保配置符合安全最佳实践
+### Security Audit
+**Goal**: Ensure the configuration follows security best practices
 
-**检查项**：
-- [ ] 容器权限最小化（评估 NET_ADMIN 必要性）
-- [ ] 敏感文件保护机制
-- [ ] 防火墙规则审查
-- [ ] 依赖包安全扫描
+**Checklist**:
+- [ ] Minimize container privileges (evaluate NET_ADMIN necessity)
+- [ ] Sensitive file protection mechanisms
+- [ ] Firewall rule review
+- [ ] Dependency package security scanning
 
-**工具**：
+**Tools**:
 - Trivy / Snyk
 - Docker Bench for Security
 
-**预估工作量**：2-3 天
+**Estimated effort**: 2-3 days
 
 ---
 
-### 添加合规性配置
-**目标**：支持企业合规要求
+### Add Compliance Configuration
+**Goal**: Support enterprise compliance requirements
 
-**功能**：
-- [ ] GDPR 数据保护模式
-- [ ] 审计日志记录
-- [ ] 企业代理强制模式
-- [ ] 离线工作模式
+**Features**:
+- [ ] GDPR data protection mode
+- [ ] Audit logging
+- [ ] Enterprise forced proxy mode
+- [ ] Offline work mode
 
-**预估工作量**：3-5 天
-
----
-
-## 📊 监控和分析
-
-### 添加使用分析（可选）
-**目标**：了解用户使用情况（隐私友好）
-
-**数据收集**（匿名、可选退出）：
-- [ ] 使用的方法（UI/extends/script）
-- [ ] 常见错误
-- [ ] 功能使用频率
-
-**隐私保护**：
-- 完全匿名
-- 本地优先
-- 明确的退出机制
-
-**预估工作量**：2-3 天
+**Estimated effort**: 3-5 days
 
 ---
 
-## 🌍 国际化
+## Monitoring and Analytics
 
-### 多语言文档
-**目标**：支持英文和中文文档
+### Add Usage Analytics (Optional)
+**Goal**: Understand usage patterns (privacy-friendly)
 
-**范围**：
-- [ ] README.md（英文版）
-- [ ] 脚本输出国际化
+**Data collection** (anonymous, opt-out):
+- [ ] Methods used (UI/extends/script)
+- [ ] Common errors
+- [ ] Feature usage frequency
 
-**预估工作量**：1-2 天
+**Privacy protection**:
+- Fully anonymous
+- Local-first
+- Clear opt-out mechanism
 
----
-
-## 📦 依赖和工具
-
-### 添加常用工具预设
-**目标**：提供工具集合的可选安装
-
-**工具集**：
-- [ ] `devtools` — 开发工具（lazygit、httpie、jq）
-- [ ] `database` — 数据库客户端（pgcli、mycli、redis-cli）
-- [ ] `cloud` — 云工具（aws-cli、gcloud、azure-cli）
-- [ ] `kubernetes` — K8s 工具（kubectl、helm、k9s）
-
-**实现方式**：
-- 作为可选 Features
-- 或环境变量控制
-
-**预估工作量**：2-3 天
+**Estimated effort**: 2-3 days
 
 ---
 
-## 🤝 社区和生态
+## Internationalization
 
-### 建立社区
-**目标**：构建用户和贡献者社区
+### Multi-language Documentation
+**Goal**: Support English and Chinese documentation
 
-**平台**：
+**Scope**:
+- [ ] README.md (English version)
+- [ ] Script output internationalization
+
+**Estimated effort**: 1-2 days
+
+---
+
+## Dependencies and Tools
+
+### Add Common Tool Presets
+**Goal**: Provide optional tool collection installations
+
+**Tool sets**:
+- [ ] `devtools` — Development tools (lazygit, httpie, jq)
+- [ ] `database` — Database clients (pgcli, mycli, redis-cli)
+- [ ] `cloud` — Cloud tools (aws-cli, gcloud, azure-cli)
+- [ ] `kubernetes` — K8s tools (kubectl, helm, k9s)
+
+**Implementation**:
+- As optional Features
+- Or controlled via environment variables
+
+**Estimated effort**: 2-3 days
+
+---
+
+## Community and Ecosystem
+
+### Build Community
+**Goal**: Build a user and contributor community
+
+**Platforms**:
 - [ ] GitHub Discussions
-- [ ] Discord / Slack 频道
-- [ ] 中文技术社区（掘金、思否）
+- [ ] Discord / Slack channel
+- [ ] Chinese tech communities (Juejin, SegmentFault)
 
-**预估工作量**：持续
+**Estimated effort**: Ongoing
 
 ---
 
-### 贡献指南
-**目标**：吸引开源贡献
+### Contributing Guidelines
+**Goal**: Attract open-source contributions
 
-**文档**：
+**Documentation**:
 - [ ] CONTRIBUTING.md
 - [ ] CODE_OF_CONDUCT.md
-- [ ] Issue/PR 模板
+- [ ] Issue/PR templates
 
-**预估工作量**：1 天
+**Estimated effort**: 1 day
 
 ---
 
-## 📅 里程碑规划
+## Milestone Roadmap
 
-### v2.1.0（Q1 2025）
-- [ ] CI/CD 测试
-- [ ] 发布为 Dev Container Template
-- [ ] 英文文档
+### v2.1.0 (Q1 2025)
+- [ ] CI/CD testing
+- [ ] Publish as Dev Container Template
+- [ ] English documentation
 
-### v2.2.0（Q2 2025）
+### v2.2.0 (Q2 2025)
 - [ ] Claude Code Feature
-- [ ] 防火墙 Feature
-- [ ] 性能优化（预构建镜像）
+- [ ] Firewall Feature
+- [ ] Performance optimization (pre-built images)
 
-### v3.0.0（Q3 2025）
-- [ ] 多容器支持
-- [ ] 项目模板生成器
-- [ ] 完整的示例库
-
----
-
-## 💡 创意收集
-
-**未分类的想法**（待评估）：
-- [ ] VS Code 扩展（一键配置）
-- [ ] Web UI 配置生成器
-- [ ] 自动化迁移工具（从其他配置迁移到本配置）
-- [ ] 集成更多 AI 工具（Copilot、Cursor 等）
-- [ ] 支持 Codespaces 和 Gitpod
+### v3.0.0 (Q3 2025)
+- [ ] Multi-container support
+- [ ] Project template generator
+- [ ] Complete example library
 
 ---
 
-## 📝 笔记
+## Ideas Collection
 
-**记录日期**：2025-01-11
-**版本**：v2.0.0 发布后
-
-**决策原则**：
-1. **简单优先** — 保持当前的简洁性
-2. **模块化** — 新功能应该是可选的
-3. **向后兼容** — 避免破坏性变更
-4. **社区驱动** — 根据用户反馈调整优先级
-
-**更新此文档**：
-- 完成任务时勾选 [ ]
-- 添加新想法到对应章节
-- 定期审查优先级
+**Uncategorized ideas** (pending evaluation):
+- [ ] VS Code extension (one-click setup)
+- [ ] Web UI configuration generator
+- [ ] Automated migration tool (migrate from other configs to this one)
+- [ ] Integrate more AI tools (Copilot, Cursor, etc.)
+- [ ] Support Codespaces and Gitpod
 
 ---
 
-## 🔗 相关资源
+## Notes
 
-- [Dev Containers 规范](https://containers.dev/)
-- [Features 开发指南](https://containers.dev/implementors/features/)
-- [Templates 开发指南](https://containers.dev/templates)
-- [Claude Code 文档](https://code.claude.com/docs)
-- [GitHub Actions 文档](https://docs.github.com/actions)
+**Recorded date**: 2025-01-11
+**Version**: After v2.0.0 release
+
+**Decision principles**:
+1. **Simplicity first** — Maintain the current simplicity
+2. **Modular** — New features should be optional
+3. **Backwards compatible** — Avoid breaking changes
+4. **Community-driven** — Adjust priorities based on user feedback
+
+**Updating this document**:
+- Check off [ ] when completing tasks
+- Add new ideas to the corresponding section
+- Periodically review priorities
 
 ---
 
-**贡献**：欢迎在 issue 中讨论这些优化项，或提交 PR 实现！
+## Related Resources
+
+- [Dev Containers Specification](https://containers.dev/)
+- [Features Development Guide](https://containers.dev/implementors/features/)
+- [Templates Development Guide](https://containers.dev/templates)
+- [Claude Code Documentation](https://code.claude.com/docs)
+- [GitHub Actions Documentation](https://docs.github.com/actions)
+
+---
+
+**Contributing**: Feel free to discuss these optimization items in issues, or submit PRs to implement them!

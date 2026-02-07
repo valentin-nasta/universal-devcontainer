@@ -1,107 +1,107 @@
-# Dev Container VPN/代理配置指南
+# Dev Container VPN/Proxy Setup Guide
 
-## 概述
+## Overview
 
-本指南介绍如何配置 Dev Container 使用宿主机的 VPN 或代理服务。这对于需要通过公司 VPN 或代理访问网络资源的场景非常有用。
+This guide explains how to configure the Dev Container to use your host machine's VPN or proxy services. This is useful when you need to access network resources through a corporate VPN or proxy.
 
-## 方案说明
+## Solution Overview
 
-我们采用 **方案 A（推荐，跨平台）**：将宿主机代理作为 HTTP(S)/SOCKS 代理透传给容器。
+We use **Plan A (Recommended, Cross-platform)**: Pass the host machine's proxy through to the container as an HTTP(S)/SOCKS proxy.
 
-### 工作原理
+### How It Works
 
-1. 宿主机运行代理客户端（如 Clash、V2Ray、Surge 等）
-2. 通过 `host.docker.internal` 别名让容器访问宿主机
-3. 容器内的应用通过代理环境变量连接到宿主机代理
-4. 防火墙自动放行代理端口，允许容器访问代理服务
+1. The host runs a proxy client (e.g., Clash, V2Ray, Surge, etc.)
+2. The container accesses the host via the `host.docker.internal` alias
+3. Applications inside the container connect to the host proxy via proxy environment variables
+4. The firewall automatically allows the proxy port, enabling container access to the proxy service
 
-### 平台支持
+### Platform Support
 
-- **macOS / Windows (Docker Desktop)**: `host.docker.internal` 默认可用
-- **Linux (Docker Engine ≥ 20.10)**: 需要通过 `--add-host=host.docker.internal:host-gateway` 映射
+- **macOS / Windows (Docker Desktop)**: `host.docker.internal` is available by default
+- **Linux (Docker Engine >= 20.10)**: Requires `--add-host=host.docker.internal:host-gateway` mapping
 
-## 快速开始
+## Quick Start
 
-### 步骤 1: 在宿主机配置代理环境变量
+### Step 1: Configure Proxy Environment Variables on the Host
 
-在宿主机（**非容器内**）的终端或 shell 配置文件中设置以下环境变量：
+Set the following environment variables in the host machine's (**not inside the container**) terminal or shell configuration:
 
 ```bash
-# HTTP/HTTPS 代理（常见端口：7890、8080、8888）
+# HTTP/HTTPS proxy (common ports: 7890, 8080, 8888)
 export HOST_PROXY_URL=http://host.docker.internal:7890
 
-# SOCKS 代理（可选，常见端口：1080）
+# SOCKS proxy (optional, common port: 1080)
 export ALL_PROXY=socks5h://host.docker.internal:1080
 
-# NO_PROXY：不走代理的地址（可选）
+# NO_PROXY: addresses that bypass the proxy (optional)
 export NO_PROXY=localhost,127.0.0.1,host.docker.internal,.local
 ```
 
-**注意**：
-- 端口号（如 `7890`）应替换为你的代理软件实际监听的端口
-- 常见代理软件端口：
+**Notes**:
+- Replace the port numbers (e.g., `7890`) with your proxy software's actual listening port
+- Common proxy software ports:
   - Clash: HTTP 7890, SOCKS 7891
   - V2Ray: HTTP/SOCKS 1080
   - Surge: HTTP 6152, SOCKS 6153
   - Shadowsocks: SOCKS 1080
 
-**推荐做法**：将这些环境变量添加到你的 shell 配置文件中（如 `~/.zshrc` 或 `~/.bashrc`），这样每次启动终端都会自动设置：
+**Recommended**: Add these environment variables to your shell configuration file (e.g., `~/.zshrc` or `~/.bashrc`) so they are set automatically on every terminal launch:
 
 ```bash
-# 添加到 ~/.zshrc 或 ~/.bashrc
+# Add to ~/.zshrc or ~/.bashrc
 echo 'export HOST_PROXY_URL=http://host.docker.internal:7890' >> ~/.zshrc
 echo 'export ALL_PROXY=socks5h://host.docker.internal:1080' >> ~/.zshrc
 echo 'export NO_PROXY=localhost,127.0.0.1,host.docker.internal,.local' >> ~/.zshrc
 
-# 重新加载配置
+# Reload the configuration
 source ~/.zshrc
 ```
 
-### 步骤 2: 启动 Dev Container
+### Step 2: Start the Dev Container
 
-环境变量配置好后，直接在 VS Code 中重新构建并启动 Dev Container：
+After configuring environment variables, rebuild and start the Dev Container in VS Code:
 
-1. 打开 VS Code 命令面板（Cmd/Ctrl + Shift + P）
-2. 执行命令：`Dev Containers: Rebuild Container`
+1. Open the VS Code Command Palette (Cmd/Ctrl + Shift + P)
+2. Run: `Dev Containers: Rebuild Container`
 
-容器启动后，代理配置会自动生效。
+The proxy configuration will take effect automatically after the container starts.
 
-### 步骤 3: （可选）配置包管理器代理
+### Step 3: (Optional) Configure Package Manager Proxies
 
-如果你希望 apt、npm、pip、git 等工具也使用代理，在容器内执行：
+If you want apt, npm, pip, git, and other tools to also use the proxy, run inside the container:
 
 ```bash
 bash .devcontainer/setup-proxy.sh
 ```
 
-这个脚本会自动配置以下工具的代理设置：
-- APT (Debian/Ubuntu 包管理器)
+This script automatically configures proxy settings for the following tools:
+- APT (Debian/Ubuntu package manager)
 - npm / yarn
-- pip (Python 包管理器)
+- pip (Python package manager)
 - git
 - wget
 
-### 步骤 4: 验证代理配置
+### Step 4: Verify Proxy Configuration
 
-在容器内执行以下命令验证代理是否工作：
+Run the following commands inside the container to verify the proxy is working:
 
 ```bash
-# 1. 检查环境变量
+# 1. Check environment variables
 env | grep -i proxy
 
-# 2. 测试代理端口连接
+# 2. Test proxy port connectivity
 nc -vz host.docker.internal 7890
 
-# 3. 测试实际网络访问（如果你的代理允许访问 Google）
+# 3. Test actual network access (if your proxy allows access to Google)
 curl -I https://www.google.com
 
-# 4. 查看防火墙规则（应该看到代理端口被允许）
+# 4. View firewall rules (should show the proxy port is allowed)
 sudo iptables -S OUTPUT | grep -i proxy
 ```
 
-## 配置详解
+## Configuration Details
 
-### devcontainer.json 配置
+### devcontainer.json Configuration
 
 ```json
 {
@@ -132,126 +132,126 @@ sudo iptables -S OUTPUT | grep -i proxy
 }
 ```
 
-**配置说明**：
-- **`build.args`**: **[新增]** 传递代理配置到 Docker 构建阶段，用于安装 features（Python、Node、GitHub CLI 等）时的网络访问
-- `--add-host=host.docker.internal:host-gateway`: 让 Linux 系统也能使用 `host.docker.internal`
-- `${localEnv:HOST_PROXY_URL}`: 从宿主机环境变量读取代理 URL
-- `remoteEnv`: 为 VS Code 及其子进程（终端、任务等）设置环境变量
-- `containerEnv`: 为整个容器进程环境设置环境变量
+**Configuration notes**:
+- **`build.args`**: **[New]** Passes proxy configuration to the Docker build stage, used for network access when installing features (Python, Node, GitHub CLI, etc.)
+- `--add-host=host.docker.internal:host-gateway`: Enables `host.docker.internal` on Linux systems
+- `${localEnv:HOST_PROXY_URL}`: Reads the proxy URL from host environment variables
+- `remoteEnv`: Sets environment variables for VS Code and its child processes (terminals, tasks, etc.)
+- `containerEnv`: Sets environment variables for the entire container process environment
 
-### 防火墙自动放行
+### Automatic Firewall Allowance
 
-`init-firewall.sh` 会自动解析代理环境变量，并将代理主机和端口加入白名单：
+`init-firewall.sh` automatically parses proxy environment variables and adds the proxy host and port to the allowlist:
 
 ```bash
 allow_proxy_from_env() {
-  # 从 HTTP(S)_PROXY 或 ALL_PROXY 提取代理地址
+  # Extract proxy address from HTTP(S)_PROXY or ALL_PROXY
   PROXY_RAW="${HTTP_PROXY:-${HTTPS_PROXY:-${ALL_PROXY:-}}}"
-  # 解析主机和端口
-  # 将代理 IP 和端口加入 iptables 白名单
+  # Parse host and port
+  # Add proxy IP and port to the iptables allowlist
 }
 ```
 
-这样即使防火墙默认拒绝出站连接，容器也能访问代理服务。
+This ensures the container can access the proxy service even when the firewall denies outbound connections by default.
 
-## 常见问题
+## FAQ
 
-### Q1: 我的代理软件应该如何配置？
+### Q1: How should I configure my proxy software?
 
-**关键设置**：
-1. **允许来自局域网的连接**：大多数代理软件默认只监听 `127.0.0.1`，需要改为监听 `0.0.0.0` 或允许局域网连接
-2. **记住端口号**：记下 HTTP 和 SOCKS 代理的端口号，用于设置环境变量
+**Key settings**:
+1. **Allow connections from LAN**: Most proxy software only listens on `127.0.0.1` by default; you need to change it to listen on `0.0.0.0` or enable LAN connections
+2. **Note the port numbers**: Record the HTTP and SOCKS proxy port numbers for setting environment variables
 
-**常见代理软件配置**：
+**Common proxy software configuration**:
 
-- **Clash**: 在配置文件中设置 `allow-lan: true`
-- **V2Ray**: 在 Inbounds 中设置监听地址为 `0.0.0.0`
-- **Surge**: 在 "代理设置" 中勾选 "允许来自局域网的连接"
+- **Clash**: Set `allow-lan: true` in the configuration file
+- **V2Ray**: Set the listen address to `0.0.0.0` in Inbounds
+- **Surge**: Check "Allow connections from LAN" in "Proxy Settings"
 
-### Q2: 容器无法连接到代理怎么办？
+### Q2: What if the container cannot connect to the proxy?
 
-**诊断步骤**：
+**Diagnostic steps**:
 
 ```bash
-# 1. 检查宿主机环境变量是否正确设置
+# 1. Check if host environment variables are correctly set
 echo $HOST_PROXY_URL
 
-# 2. 在容器内检查环境变量是否传入
+# 2. Check if environment variables are passed into the container
 env | grep -i proxy
 
-# 3. 测试 host.docker.internal 是否可达
+# 3. Test if host.docker.internal is reachable
 ping -c 3 host.docker.internal
 
-# 4. 测试代理端口是否开放
+# 4. Test if the proxy port is open
 nc -vz host.docker.internal 7890
 
-# 5. 检查防火墙规则
+# 5. Check firewall rules
 sudo iptables -S OUTPUT
 ```
 
-**常见原因**：
-- 宿主机代理软件未运行或端口配置错误
-- 代理软件未开启 "允许局域网连接"
-- 端口号设置错误
-- Linux 系统未正确映射 `host.docker.internal`
+**Common causes**:
+- Host proxy software is not running or port configuration is wrong
+- Proxy software has not enabled "Allow LAN connections"
+- Incorrect port numbers
+- Linux system has not properly mapped `host.docker.internal`
 
-### Q3: apt 不支持 SOCKS 代理怎么办？
+### Q3: What if apt doesn't support SOCKS proxy?
 
-APT 只支持 HTTP/HTTPS 代理。如果你的 VPN 只提供 SOCKS 代理，有两个解决方案：
+APT only supports HTTP/HTTPS proxies. If your VPN only provides a SOCKS proxy, there are two solutions:
 
-1. **推荐**：配置代理软件同时开启 HTTP 和 SOCKS 端口
-2. 使用 `proxychains` 或 `redsocks` 进行协议转换
+1. **Recommended**: Configure your proxy software to enable both HTTP and SOCKS ports simultaneously
+2. Use `proxychains` or `redsocks` for protocol conversion
 
-### Q4: 某些域名不应该走代理怎么办？
+### Q4: What if certain domains should not go through the proxy?
 
-使用 `NO_PROXY` 环境变量：
+Use the `NO_PROXY` environment variable:
 
 ```bash
 export NO_PROXY=localhost,127.0.0.1,.example.com,.internal
 ```
 
-- 支持通配符域名（如 `.example.com` 匹配所有子域名）
-- 多个条目用逗号分隔
-- 不要添加协议前缀
+- Supports wildcard domains (e.g., `.example.com` matches all subdomains)
+- Multiple entries are comma-separated
+- Do not add protocol prefixes
 
-### Q5: 如何临时禁用代理？
+### Q5: How to temporarily disable the proxy?
 
-**方法 1**：在宿主机取消设置环境变量后重建容器
+**Method 1**: Unset the environment variables on the host, then rebuild the container
 
 ```bash
 unset HOST_PROXY_URL
 unset ALL_PROXY
-# 然后在 VS Code 中执行 "Rebuild Container"
+# Then run "Rebuild Container" in VS Code
 ```
 
-**方法 2**：在容器内临时取消环境变量
+**Method 2**: Temporarily unset environment variables inside the container
 
 ```bash
 unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
 ```
 
-注意：方法 2 只对当前 shell 会话有效。
+Note: Method 2 only applies to the current shell session.
 
-### Q6: 构建容器时出现网络错误怎么办？
+### Q6: What if there are network errors during container build?
 
-如果在 **构建阶段**（如安装 Python、Node 等 features）遇到网络错误：
+If you encounter network errors during the **build stage** (e.g., installing Python, Node, and other features):
 
 ```
 E: Failed to fetch http://ports.ubuntu.com/...
 500 reading HTTP response body: unexpected EOF
 ```
 
-**原因**：这是构建时代理配置缺失导致的。Docker 构建阶段无法直接使用运行时的环境变量。
+**Cause**: Missing proxy configuration during build. The Docker build stage cannot directly use runtime environment variables.
 
-**解决方案**：
+**Solution**:
 
-1. **确保已设置宿主机环境变量**（在启动 VS Code 之前）：
+1. **Ensure host environment variables are set** (before launching VS Code):
    ```bash
    export HOST_PROXY_URL=http://host.docker.internal:7890
    export NO_PROXY=localhost,127.0.0.1,host.docker.internal,.local
    ```
 
-2. **Dockerfile 已配置构建参数**（项目已包含）：
+2. **Dockerfile is configured with build arguments** (already included in the project):
    ```dockerfile
    ARG HTTP_PROXY
    ARG HTTPS_PROXY
@@ -261,7 +261,7 @@ E: Failed to fetch http://ports.ubuntu.com/...
    # ...
    ```
 
-3. **devcontainer.json 已配置 build.args**（项目已包含）：
+3. **devcontainer.json is configured with build.args** (already included in the project):
    ```json
    {
      "build": {
@@ -274,16 +274,16 @@ E: Failed to fetch http://ports.ubuntu.com/...
    }
    ```
 
-4. **重建容器**：
-   - VS Code 命令面板 → `Dev Containers: Rebuild Container`
+4. **Rebuild the container**:
+   - VS Code Command Palette -> `Dev Containers: Rebuild Container`
 
-**验证**：在构建日志中应该看到代理被正确使用，不再出现网络超时或 500 错误。
+**Verification**: The build logs should show the proxy being used correctly, with no more network timeouts or 500 errors.
 
-## 进阶配置
+## Advanced Configuration
 
-### 使用环境文件管理代理配置
+### Manage Proxy Configuration with Environment Files
 
-可以创建一个 `.env.proxy` 文件管理代理配置：
+You can create a `.env.proxy` file to manage proxy settings:
 
 ```bash
 # .env.proxy
@@ -292,7 +292,7 @@ ALL_PROXY=socks5h://host.docker.internal:1080
 NO_PROXY=localhost,127.0.0.1,host.docker.internal,.local
 ```
 
-然后在 shell 配置中：
+Then in your shell configuration:
 
 ```bash
 # ~/.zshrc
@@ -301,9 +301,9 @@ if [ -f ~/.env.proxy ]; then
 fi
 ```
 
-### 为不同项目配置不同代理
+### Configure Different Proxies for Different Projects
 
-使用 VS Code 的工作区设置：
+Use VS Code workspace settings:
 
 ```json
 // .vscode/settings.json
@@ -315,32 +315,32 @@ fi
 }
 ```
 
-## 宿主机绕行（localhost 回调必读）
+## Host-side Bypass (localhost Callback - Must Read)
 
-某些登录流程（如 Claude Code 的浏览器授权）会使用本地回调：浏览器跳转到 `http://localhost:<端口>/callback`，而回调服务实际跑在“容器内”，依赖 VS Code 端口转发把容器端口映射到宿主机相同端口。因此，必须确保“宿主机浏览器访问 localhost”不会经过代理，且不会被 IPv6/解析差异干扰。
+Some login flows (such as Claude Code's browser authorization) use local callbacks: the browser redirects to `http://localhost:<port>/callback`, while the callback server actually runs inside the container, relying on VS Code port forwarding to map the container port to the same host port. Therefore, you must ensure that "host browser access to localhost" does not go through the proxy and is not affected by IPv6/resolution differences.
 
-### 推荐绕行清单（添加到宿主机/代理客户端）
+### Recommended Bypass List (Add to Host/Proxy Client)
 
 - localhost
 - 127.0.0.1
 - ::1
 - host.docker.internal
-- 可选：`*.local`
-- 可选直连内网段：`127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10`
+- Optional: `*.local`
+- Optional direct internal network ranges: `127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10`
 
-说明：`::1` 是 IPv6 的 localhost。很多浏览器会优先尝试 `::1`，未绕行会导致请求被代理接管或连接失败，从而出现“授权页一直转圈”。
+Note: `::1` is IPv6 localhost. Many browsers will try `::1` first; if not bypassed, the request may be intercepted by the proxy or fail to connect, resulting in "authorization page keeps spinning".
 
-### macOS 系统代理（系统设置）
+### macOS System Proxy (System Settings)
 
-路径：系统设置 → 网络 → 选择当前网络 → 详情 → 代理
+Path: System Settings -> Network -> Select current network -> Details -> Proxies
 
-- 如启用“自动发现代理/自动配置代理/HTTP(S) 代理”，在“忽略这些主机与域的代理设置”填入：
+- If "Auto Proxy Discovery/Auto Proxy Configuration/HTTP(S) Proxy" is enabled, add the following to "Bypass proxy settings for these Hosts & Domains":
   - `localhost, 127.0.0.1, ::1, host.docker.internal, *.local`
-- 能力允许时，关闭“自动发现/自动配置代理”，避免 PAC 覆盖本地绕行；或确保 PAC 对上述目标返回 `DIRECT`。
+- If possible, disable "Auto Discovery/Auto Configuration Proxy" to avoid PAC overriding local bypass; or ensure the PAC returns `DIRECT` for the above targets.
 
-### Shadowrocket（规则示例）
+### Shadowrocket (Rule Examples)
 
-在使用的配置文件中添加以下规则（顺序靠前）：
+Add the following rules (near the top) in the active profile:
 
 ```
 DOMAIN-SUFFIX,claude.ai,PROXY
@@ -356,11 +356,11 @@ IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
 IP-CIDR,::1/128,DIRECT,no-resolve
 ```
 
-应用/重载规则后再重试授权。
+Apply/reload rules, then retry authorization.
 
-### Clash / ClashX（规则示例）
+### Clash / ClashX (Rule Examples)
 
-在 `rules:` 中加入（放在较前位置）：
+Add the following to `rules:` (near the top):
 
 ```
 - DOMAIN,localhost,DIRECT
@@ -374,9 +374,9 @@ IP-CIDR,::1/128,DIRECT,no-resolve
 - IP-CIDR,::1/128,DIRECT,no-resolve
 ```
 
-如使用 TUN/增强模式，也可在 bypass/排除清单增加上述条目。
+If using TUN/Enhanced mode, also add the above entries to the bypass/exclusion list.
 
-### Surge（规则示例）
+### Surge (Rule Examples)
 
 ```
 DOMAIN,localhost,DIRECT
@@ -390,12 +390,12 @@ IP-CIDR,100.64.0.0/10,DIRECT
 IP-CIDR6,::1/128,DIRECT
 ```
 
-### SwitchyOmega（浏览器扩展）
+### SwitchyOmega (Browser Extension)
 
-- 在使用的 Profile 的 Bypass List（或“直接连接”规则）加入：
+- In the Bypass List (or "Direct Connection" rules) of the active Profile, add:
   - `localhost, 127.0.0.1, ::1, host.docker.internal, *.local`
 
-### PAC 文件（示例片段）
+### PAC File (Example Snippet)
 
 ```javascript
 function FindProxyForURL(url, host) {
@@ -414,23 +414,23 @@ function FindProxyForURL(url, host) {
   ) {
     return 'DIRECT';
   }
-  return 'PROXY your-proxy:port'; // 按需替换
+  return 'PROXY your-proxy:port'; // Replace as needed
 }
 ```
 
-### 验证步骤
+### Verification Steps
 
-- 宿主机：`curl -v http://localhost:<端口>/` 不应出现 “Proxy CONNECT …”，应直接连到 `127.0.0.1:<端口>`（看到 404 也算成功）。
-- VS Code → Ports 面板：对该端口选择 “Open in Browser”，可打开 404 页面；随后在授权页点击 Authorize 应一次完成跳转。
-- 若抓包/浏览器 DevTools 显示先连 `::1` 失败再回退，说明 `::1` 未纳入绕行；补充后重试。
+- Host: `curl -v http://localhost:<port>/` should not show "Proxy CONNECT ...", and should connect directly to `127.0.0.1:<port>` (seeing 404 is fine).
+- VS Code -> Ports panel: Select "Open in Browser" for the port; should open a 404 page; then clicking Authorize on the authorization page should complete the redirect in one go.
+- If packet capture/browser DevTools shows it tries `::1` first and fails before falling back, `::1` is not in the bypass list; add it and retry.
 
-## 🛡️ 防封号特别配置（STRICT_PROXY_ONLY）
+## Anti-Ban Special Configuration (STRICT_PROXY_ONLY)
 
-为防止 IP 泄露导致 Claude 封号，本配置默认启用 **严格代理模式**，并推荐在代理客户端中对 Claude 相关域名做显式规则。
+To prevent IP leaks that could lead to Claude account bans, this configuration enables **strict proxy mode** by default and recommends setting explicit rules for Claude-related domains in your proxy client.
 
-### 1. 容器内机制
+### 1. In-Container Mechanism
 
-`devcontainer.json` 中通过 `containerEnv` 设置了：
+`devcontainer.json` sets the following via `containerEnv`:
 
 ```json
 {
@@ -438,60 +438,60 @@ function FindProxyForURL(url, host) {
 }
 ```
 
-当 `STRICT_PROXY_ONLY=1` 时：
+When `STRICT_PROXY_ONLY=1`:
 
-- 防火墙只放行 DNS 和代理端口（由 `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY` 解析得到）
-- 不再对任何外部域名（包括 `claude.ai` / `anthropic.com`）做直连白名单
-- 所有外网访问必须走代理
+- The firewall only allows DNS and proxy ports (derived from `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY`)
+- No direct connection allowlist for any external domains (including `claude.ai` / `anthropic.com`)
+- All external access must go through the proxy
 
-如需暂时允许少量直连白名单，可以在宿主机设置：
+To temporarily allow a small direct connection allowlist, set on the host:
 
 ```bash
 export STRICT_PROXY_ONLY=0
 ```
 
-然后在 VS Code 中重建容器。
+Then rebuild the container in VS Code.
 
-### 2. 宿主机代理（以 Shadowrocket 为例）
+### 2. Host Proxy (Shadowrocket Example)
 
-在 **宿主机代理客户端** 中，既要确保 Claude 相关域名强制走代理，又要保证登录回调的 `localhost` 直连。以 Shadowrocket 为例（在现有规则基础上追加）：
+In the **host proxy client**, you need to ensure Claude-related domains are forced through the proxy while keeping `localhost` for login callbacks as a direct connection. Using Shadowrocket as an example (append to existing rules):
 
 ```text
-DOMAIN-SUFFIX,claude.ai,PROXY        # Claude 网站与服务
-DOMAIN-SUFFIX,anthropic.com,PROXY    # Anthropic 相关域名
-DOMAIN,localhost,DIRECT              # 本地回调
+DOMAIN-SUFFIX,claude.ai,PROXY        # Claude website and services
+DOMAIN-SUFFIX,anthropic.com,PROXY    # Anthropic-related domains
+DOMAIN,localhost,DIRECT              # Local callback
 IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
 ```
 
-其中：
+Where:
 
-- `claude.ai` / `anthropic.com` 必须显式指定走代理节点（建议选择美国节点），不要依赖“自动选择”或泛用配置模式。
-- `localhost` / `127.0.0.0/8` 必须保持直连，以配合 VS Code 端口转发完成登录回调。
+- `claude.ai` / `anthropic.com` must be explicitly set to use a proxy node (US nodes recommended); do not rely on "auto-select" or generic configuration modes.
+- `localhost` / `127.0.0.0/8` must remain direct connection to work with VS Code port forwarding for login callbacks.
 
-更多平台（Clash/Surge/SwitchyOmega/PAC）的 localhost 绕行示例，见上文“宿主机绕行（localhost 回调必读）”一节。
+For more platform examples (Clash/Surge/SwitchyOmega/PAC) for localhost bypass, see the "Host-side Bypass (localhost Callback - Must Read)" section above.
 
-## 参考资料
+## References
 
-- [Docker 官方文档 - Networking](https://docs.docker.com/network/)
+- [Docker Official Documentation - Networking](https://docs.docker.com/network/)
 - [VS Code Dev Containers - Environment Variables](https://code.visualstudio.com/remote/advancedcontainers/environment-variables)
-- [Docker host.docker.internal 说明](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host)
+- [Docker host.docker.internal Documentation](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host)
 
-## 故障排除日志
+## Troubleshooting Logs
 
-如果遇到问题，请收集以下信息：
+If you encounter issues, please collect the following information:
 
 ```bash
-# 宿主机信息
+# Host information
 docker --version
 docker info | grep -i os
 
-# 环境变量
+# Environment variables
 env | grep -i proxy
 
-# 容器内测试
+# In-container tests
 docker exec -it <container-name> bash -c 'env | grep -i proxy'
 docker exec -it <container-name> bash -c 'nc -vz host.docker.internal 7890'
 
-# 防火墙规则
+# Firewall rules
 docker exec -it <container-name> bash -c 'sudo iptables -S OUTPUT'
 ```
